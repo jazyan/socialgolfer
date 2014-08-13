@@ -40,51 +40,58 @@ def updatepairs (n):
 
 taken, pairs, order = updatepairs (1)
 
-(i, j) = order[0]
-state1 = [i, j]
-copy = order[1:]
-start = 0
 
-while len(state1) != G*P:
-    # if there is no more, we were too greedy. Need to backtrack
-    if copy == []:
-        (i, j) = state1[-2:]
-        state1 = state1[:-2]
-        # find where we were, and choose next one
-        start = order.index((i, j))
-        copy = order[start + 1:]
-    (a, b) = copy.pop(0)
-    # first check that (a, b) has not been used already
-    if not(a in state1) and not(b in state1):
-        # if we start a new group, we can add it
-        if len(state1)%P == 0:
-            start = order.index((a, b))
-            state1.append(a)
-            state1.append(b)
-        # otherwise, we need to check within the group that it is valid
-        else:
-            currgroup = state1[-(P-2):] + [a, b]
-            allpairs = list(itertools.combinations(currgroup, 2))
-            tally = 0
-            for (i, j) in allpairs:
-                if not((i,j) in taken):
-                    tally += 1
-                else:
-                    #print "DIDN'T WORK", (i, j)
-                    break;
-            if tally == len(allpairs):
-                # all pairs are valid, so we can add (a, b)
-                state1.append(a)
-                state1.append(b)
-                # start of new group: we can reconsider ones passed over
-                if len(state1)%P == 0:
-                    copy = order[start + 1:]
-                # NOTE: later can delete already seen pairs to speed up
+def createstate (order, pairs, taken):
+    (i, j) = order[0]
+    state = [i, j]
+    copy = order[1:]
+    start = 0
 
+    while len(state) != G*P:
+        # if there is no more, we were too greedy. Need to backtrack
+        if copy == []:
+            (i, j) = state[-2:]
+            state = state[:-2]
+            # find where we were, and choose next one
+            start = order.index((i, j))
+            copy = order[start + 1:]
+        (a, b) = copy.pop(0)
+        # first check that (a, b) has not been used already
+        if not(a in state) and not(b in state):
+            # if we start a new group, we can add it
+            if len(state)%P == 0:
+                start = order.index((a, b))
+                state.append(a)
+                state.append(b)
+            # otherwise, we need to check within the group that it is valid
+            else:
+                currgroup = state[-(P-2):] + [a, b]
+                allpairs = list(itertools.combinations(currgroup, 2))
+                tally = 0
+                for (i, j) in allpairs:
+                    if not((i,j) in taken):
+                        tally += 1
+                    else:
+                        #print "DIDN'T WORK", (i, j)
+                        break;
+                if tally == len(allpairs):
+                    # all pairs are valid, so we can add (a, b)
+                    state.append(a)
+                    state.append(b)
+                    # start of new group: we can reconsider ones passed over
+                    if len(state)%P == 0:
+                        copy = order[start + 1:]
+                    # NOTE: later can delete already seen pairs to speed up
+    return state
+
+state1 = createstate(order, pairs, taken)
 state1 = [state1[i:i+P] for i in range(0, len(people), P)]
 
 print "STATE0", state0
 print "STATE1", state1
 
-print order[0], pairs[order[0]]
-print order[-1], pairs[order[-1]]
+updateadj (state1)
+taken1, pairs1, order1 = updatepairs (2)
+state2 = createstate (order1, pairs1, taken1)
+
+print "STATE2", state2
