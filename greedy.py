@@ -19,27 +19,32 @@ def updateadj (state):
             holder.remove(elt)
             adj[elt] += holder
 
-updateadj (state0)
+
+def used (state):
+    allpairs = []
+    for group in state:
+        allpairs += itertools.combinations(group, 2)
+    rev = [(j, i) for (i, j) in allpairs]
+    allpairs += rev
+    return allpairs
+
+#updateadj (state0)
 
 # union of i and j's neighbors
-def updatepairs (n):
+def updatepairs (state, n):
     # create all possible pairs
     pairs = {(i, j):[] for i in range(G*P) for j in range(i+1, G*P)}
     for i in range(len(adj)):
         for j in range(i+1, len(adj)):
             pairs[(i, j)] = list(set(adj[i] + adj[j]))
-    # all pairs that were used, and their reverse
-    taken = [key for key, value in pairs.items() if len(value) <= n*P]
-    rev = [(j, i) for (i, j), value in pairs.items() if len(value) <= n*P]
-    taken += rev
+    taken = used (state)
     # remaining available pairs
-    pairs = {key:value for key, value in pairs.items() if len(value) > n*P}
+    pairs = {key:value for key, value in pairs.items() if key not in taken}
     # sort by least FREEDOM
     order = sorted(pairs, key=lambda k: len(pairs[k]), reverse = True)
     return taken, pairs, order
 
-taken, pairs, order = updatepairs (1)
-
+#taken, pairs, order = updatepairs (state0, 1)
 
 def createstate (order, pairs, taken):
     (i, j) = order[0]
@@ -72,7 +77,6 @@ def createstate (order, pairs, taken):
                     if not((i,j) in taken):
                         tally += 1
                     else:
-                        #print "DIDN'T WORK", (i, j)
                         break;
                 if tally == len(allpairs):
                     # all pairs are valid, so we can add (a, b)
@@ -84,14 +88,27 @@ def createstate (order, pairs, taken):
                     # NOTE: later can delete already seen pairs to speed up
     return state
 
-state1 = createstate(order, pairs, taken)
-state1 = [state1[i:i+P] for i in range(0, len(people), P)]
+#state1 = createstate(order, pairs, taken)
+#state1 = [state1[i:i+P] for i in range(0, len(people), P)]
 
 print "STATE0", state0
-print "STATE1", state1
+#print "STATE1", state1
 
-updateadj (state1)
-taken1, pairs1, order1 = updatepairs (2)
-state2 = createstate (order1, pairs1, taken1)
+#updateadj (state1)
+#taken1, pairs1, order1 = updatepairs (state1 + state0, 2)
 
+#state2 = createstate (order1, pairs1, taken1)
+
+#print "STATE2", [state2[i:i+P] for i in range(0, len(people), P)]
+
+def run(state, prevstates, n):
+    updateadj (state)
+    taken, pairs, order = updatepairs(prevstates + state, n)
+    state = createstate(order, pairs, taken)
+    return [state[i:i+P] for i in range(0, len(people), P)]
+
+state1 = run(state0, state0, 1)
+print "State1", state1
+state2 = run(state1, state0 + state1, 2)
 print "STATE2", state2
+state3 = run(state2, state0 + state1 + state2, 3)
