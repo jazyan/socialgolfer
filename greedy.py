@@ -19,7 +19,6 @@ def updateadj (state):
             holder.remove(elt)
             adj[elt] += holder
 
-
 def used (state):
     allpairs = []
     for group in state:
@@ -28,10 +27,8 @@ def used (state):
     allpairs += rev
     return allpairs
 
-#updateadj (state0)
-
 # union of i and j's neighbors
-def updatepairs (state, n):
+def updatepairs (state):
     # create all possible pairs
     pairs = {(i, j):[] for i in range(G*P) for j in range(i+1, G*P)}
     for i in range(len(adj)):
@@ -43,8 +40,6 @@ def updatepairs (state, n):
     # sort by least FREEDOM
     order = sorted(pairs, key=lambda k: len(pairs[k]), reverse = True)
     return taken, pairs, order
-
-#taken, pairs, order = updatepairs (state0, 1)
 
 def createstate (order, pairs, taken):
     (i, j) = order[0]
@@ -74,7 +69,7 @@ def createstate (order, pairs, taken):
                 allpairs = list(itertools.combinations(currgroup, 2))
                 tally = 0
                 for (i, j) in allpairs:
-                    if not((i,j) in taken):
+                    if (i,j) not in taken:
                         tally += 1
                     else:
                         break;
@@ -88,27 +83,26 @@ def createstate (order, pairs, taken):
                     # NOTE: later can delete already seen pairs to speed up
     return state
 
-#state1 = createstate(order, pairs, taken)
-#state1 = [state1[i:i+P] for i in range(0, len(people), P)]
-
-print "STATE0", state0
-#print "STATE1", state1
-
-#updateadj (state1)
-#taken1, pairs1, order1 = updatepairs (state1 + state0, 2)
-
-#state2 = createstate (order1, pairs1, taken1)
-
-#print "STATE2", [state2[i:i+P] for i in range(0, len(people), P)]
-
-def run(state, prevstates, n):
+def run(state, prevstates):
     updateadj (state)
-    taken, pairs, order = updatepairs(prevstates + state, n)
+    taken, pairs, order = updatepairs(prevstates + state)
+    print "LARGEST", len(pairs[order[0]])
+    print "SMALLEST", len(pairs[order[-1]])
     state = createstate(order, pairs, taken)
     return [state[i:i+P] for i in range(0, len(people), P)]
 
-state1 = run(state0, state0, 1)
-print "State1", state1
-state2 = run(state1, state0 + state1, 2)
-print "STATE2", state2
-state3 = run(state2, state0 + state1 + state2, 3)
+curr_state = state0
+states = state0
+print "state 0", state0
+for i in range(W-1):
+    next_state = run(curr_state, states)
+    print "state", i+1, next_state
+    states = states + next_state
+    curr_state = next_state
+
+
+#state1 = [[0, 4, 8, 12], [1, 5, 9, 13], [2, 6, 10, 14], [3, 7, 11, 15]]
+#state2 = [[3, 6, 9, 12], [0, 7, 10, 13], [2, 5, 8, 15], [1, 4, 11, 14]]
+
+#state3 = run(state2, state0 + state1 + state2)
+#print state3
