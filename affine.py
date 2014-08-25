@@ -1,12 +1,12 @@
-order = 5
+order = 3
 
 scalar = [i for i in range(order) if i != 0]
 c_scalar = [i for i in range(order)]
 
-lines = [(i, j) for i in range(order) for j in range(order) if (i, j) != (0, 0)]
+points = [(i, j) for i in range(order) for j in range(order) if (i, j) != (0, 0)]
 
 equ_class = []
-for (a1, b1) in lines:
+for (a1, b1) in points:
     tally = 0
     test = []
     for s in scalar:
@@ -18,9 +18,19 @@ for (a1, b1) in lines:
     if tally == len(scalar):
         equ_class.append((a1, b1))
 
-print lines
-print len(lines)
+points.append((0,0))
+print points
+print len(points)
 print equ_class
 
-equ_class = [(a, b, c) for (a, b) in equ_class for c in c_scalar]
-print equ_class
+lines = {(a, b, c):[] for (a, b) in equ_class for c in c_scalar}
+
+for (x, y) in points:
+    for (a, b, c) in lines:
+        if (a*x + b*y + c)%order == 0:
+            lines[(a, b, c)].append((x, y))
+
+print len(lines)
+for (a, b) in equ_class:
+    for c in c_scalar:
+        print lines[(a, b, c)]
