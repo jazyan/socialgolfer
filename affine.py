@@ -1,4 +1,4 @@
-order = 3
+order = 7
 
 scalar = [i for i in range(order) if i != 0]
 c_scalar = [i for i in range(order)]
@@ -25,12 +25,16 @@ print equ_class
 
 lines = {(a, b, c):[] for (a, b) in equ_class for c in c_scalar}
 
+nums = {(a, b):i for (i, (a, b)) in enumerate(points)}
+print nums
+
 for (x, y) in points:
     for (a, b, c) in lines:
         if (a*x + b*y + c)%order == 0:
-            lines[(a, b, c)].append((x, y))
+            lines[(a, b, c)].append(nums[(x, y)])
 
 print len(lines)
 for (a, b) in equ_class:
+    print "-----"
     for c in c_scalar:
-        print lines[(a, b, c)]
+        print (a, b, c), lines[(a, b, c)]
