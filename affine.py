@@ -1,7 +1,7 @@
 import itertools
 import random
+from math import sqrt
 
-order = 5
 def field_prime (order):
     c_scalar = [i for i in range(order)]
     points = [(i, j) for i in range(order) for j in range(order)]
@@ -15,9 +15,7 @@ def field_prime (order):
     for (a, b) in equ_class:
         print "-----"
         for c in c_scalar:
-            print (a, b, c), lines[(a, b, c)]
-
-print field_prime(5)
+            print lines[(a, b, c)]
 
 def rem_lead_0 (li):
     to_str = ''.join(map(str, li)).rstrip("0")
@@ -30,7 +28,6 @@ def polydiv (dividend, divisor, p):
     deg_ans = len(dividend) - len(divisor)
     ans = [0 for i in range(deg_ans + 1)]
     while len(dividend) >= len(divisor):
-        #print "ans", ans, "divisor", divisor, "dividend", dividend
         deg_ans = len(dividend) - len(divisor)
         for i in range(p):
             if (divisor[-1]*i)%p == dividend[-1]:
@@ -41,14 +38,7 @@ def polydiv (dividend, divisor, p):
         dividend = rem_lead_0(dividend)
     if dividend == []:
         return ans
-'''
-print polydiv ([-1, 0, 1], [1, 1], 10)
-test_divd = [0 for i in range(17)]
-test_divd[1] = -1
-test_divd[16] = 1
-test_div = [1, 1, 0, 0, 1]
-print polydiv (test_divd, test_div, 2)
-'''
+
 def rand_deg_poly (deg, p):
     poly = [1]
     for i in range(deg):
@@ -66,16 +56,12 @@ def gen_irreducible (deg, p):
         divisors += div
     divisors = [d for d in divisors if sum(d) > (p-1)]
     divisors.append((0, 1))
-    #print "DIVISORS", divisors
     score = 0
     while score != len(divisors):
         score = 0
         poly = rand_deg_poly (deg, p)
-        #print "POLY", poly
         for d in divisors:
-            #print d
             if polydiv(poly, d, p) != None:
-                #print "FAILED", d, polydiv(poly, d, p)
                 break;
             else:
                 score += 1
@@ -109,7 +95,6 @@ def polymod (poly, irr, p):
         poly = rem_lead_0(poly)
         deg = len(poly) - len(irr)
     return poly
-#print polymod([1, 1, 0, 1, 1], [1, 1, 0, 1], 2)
 
 def polymultmod (p1, p2, irr, p):
     poly = polymult(p1, p2, p)
@@ -131,21 +116,15 @@ def field_prime_power (p, n):
     irred_poly = gen_irreducible (n, p)
     elts = fieldelts(p, n)
     mapped = {i:elts[i] for i in range(len(elts))}
-    print mapped
     table = multtable(irred_poly, mapped, p)
-
     nums = {v:k for k, v in mapped.items()}
-    print "NUMS", nums, type((0, 1))
     iden_0 = tuple([0 for i in range(n)])
-    print iden_0
     iden_1 = tuple([1] + [0 for i in range(n-1)])
 
     points = [(i, j) for i in elts for j in elts]
     enum = {pt:i for (i, pt) in enumerate(points)}
     equ_class = [(iden_1, e) for e in elts] + [(iden_0, iden_1)]
-    print equ_class
     lines = {(a, b, c):[] for (a, b) in equ_class for c in elts}
-    print lines
     for (x, y) in points:
         for (a, b, c) in lines:
             L = len(c)
@@ -159,6 +138,28 @@ def field_prime_power (p, n):
     for (a, b) in equ_class:
         print "-----"
         for c in elts:
-            print (a, b, c), lines[(a, b, c)]
+            print lines[(a, b, c)]
 
-field_prime_power (2, 3)
+num_points = int(raw_input("How many points? "))
+
+def prime_factor(n):
+    ans = []
+    i = 2
+    while i*i < n:
+        while n%i == 0:
+            n /= i
+            ans.append(i)
+        i += 1
+    return ans
+
+small_primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31]
+prime_fac = prime_factor(num_points)
+
+if len(prime_fac)%2 == 0 and all(x == prime_fac[0] for x in prime_fac) and prime_fac[0] in small_primes:
+    p = prime_fac[0]
+    if len(prime_fac) == 2:
+        field_prime(p)
+    else:
+        field_prime_power(p, len(prime_fac)/2)
+else:
+    print "Try another number next time! A square of a prime power."
