@@ -1,21 +1,25 @@
-# Implementation of block design (n^2, n, 1) represented as an affine plane.
+##########################################################################
+# Implementation of block design (n^2, n, 1) using finite affine planes.
 # For info on block designs: http://mathworld.wolfram.com/BlockDesign.html
 # For info on affine planes: http://mathworld.wolfram.com/AffinePlane.html
+##########################################################################
 
 import itertools
 import random
 from math import sqrt
 
+##########################################################################
 # Finite affine planes have order q, q = p^n, p is prime and n >= 1
 # They consist of ordered pairs of the finite field Fq
-
-# If the order = p, then Fp has elt 0, 1, ..., p-1, with normal mod + and *
+# If the q = p, then Fp has elts 0, 1, ..., p-1, with + and * mod p
 # Below creates the block design (q^2, q, 1), with prime q
-def field_prime (order):
-    c_scalar = [i for i in range(order)]
-    points = [(i, j) for i in range(order) for j in range(order)]
+##########################################################################
+
+def field_prime (q):
+    c_scalar = [i for i in range(q)]
+    points = [(i, j) for i in range(q) for j in range(q)]
     # equ_class contains slopes of the line. there are q+1 distinct slopes
-    equ_class = [(1, b) for b in range(order)] + [(0, 1)]
+    equ_class = [(1, b) for b in range(q)] + [(0, 1)]
     # lines are represented as ax + by + c = 0
     lines = {(a, b, c):[] for (a, b) in equ_class for c in c_scalar}
     # maps each point to a number
@@ -24,7 +28,7 @@ def field_prime (order):
     # checks which points (x, y) are in line ax + by + c = 0
     for (x, y) in points:
         for (a, b, c) in lines:
-            if (a*x + b*y + c)%order == 0:
+            if (a*x + b*y + c) % q == 0:
                 lines[(a, b, c)].append(nums[(x, y)])
 
     # pretty printing of groups
@@ -33,15 +37,15 @@ def field_prime (order):
         for c in c_scalar:
             print lines[(a, b, c)]
 
-
+#########################################################################
 # Below are defs that create Fq, where q = p^n, n >= 2
 # If q = p^n where n >= 2, problem of 0-divisors
 # For example: F4 != Z/4Z, because 2*2 = 0
-
 # F4 thus is represented as F2[x]/f, where f is an irreducible poly with deg 2
 # In general, Fq = Fp[x]/f, f deg = n
 # We represent all the elements as vectors (a_0, a_1, a_2, ..., a_n-1)
 # (a_0, a_1, a_2, ..., a_n-1) = a_0 + a_1*x + a_2*x^2 + ... + a_n-1*x^(n-1)
+#########################################################################
 
 # remove leading zeros
 # ex: (0, 1, 0) can be reduced to (0, 1) (where both vectors represent x)
@@ -222,6 +226,9 @@ def field_prime_power (p, n):
         for c in elts:
             print lines[(a, b, c)]
 
+
+# Prime factorization of n.
+# For checking if user input is a square of a prime power
 def prime_factor(n):
     ans = []
     i = 2
@@ -232,17 +239,23 @@ def prime_factor(n):
         i += 1
     return ans
 
-num_points = int(raw_input("How many points? "))
-small_primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31]
-prime_fac = prime_factor(num_points)
 
-print prime_fac
+def run ():
+    num_points = int(raw_input("How many points? "))
+    small_primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31]
+    prime_fac = prime_factor(num_points)
 
-if len(prime_fac)%2 == 0 and all(x == prime_fac[0] for x in prime_fac) and prime_fac[0] in small_primes:
-    p = prime_fac[0]
-    if len(prime_fac) == 2:
-        field_prime(p)
+    # if it can be factored into an even number of a prime, it passes
+    if len(prime_fac) % 2 == 0 and all(x == prime_fac[0] for x in prime_fac) and prime_fac[0] in small_primes:
+        q = prime_fac[0]
+        # if num = q^2, create Fq using field_prime
+        if len(prime_fac) == 2:
+            field_prime(q)
+        # otherwise, need to use field_prime_power to create Fq
+        else:
+            field_prime_power(q, len(prime_fac)/2)
     else:
-        field_prime_power(p, len(prime_fac)/2)
-else:
-    print "Try another number next time! A square of a prime power."
+        print "I demand a square of a prime power!"
+
+if __name__ == "__main__":
+    run()
