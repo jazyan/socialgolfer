@@ -18,7 +18,7 @@ from math import sqrt
 def field_prime (q):
     c_scalar = [i for i in range(q)]
     points = [(i, j) for i in range(q) for j in range(q)]
-    # equ_class contains slopes of the line. there are q+1 distinct slopes
+    # equ_class contains the (q+1) distinct line slopes
     equ_class = [(1, b) for b in range(q)] + [(0, 1)]
     # lines are represented as ax + by + c = 0
     lines = {(a, b, c):[] for (a, b) in equ_class for c in c_scalar}
@@ -47,7 +47,7 @@ def field_prime (q):
 # (a_0, a_1, a_2, ..., a_n-1) = a_0 + a_1*x + a_2*x^2 + ... + a_n-1*x^(n-1)
 #########################################################################
 
-# remove leading zeros
+# removes leading zeros
 # ex: (0, 1, 0) can be reduced to (0, 1) (where both vectors represent x)
 def rem_lead_0 (li):
     to_str = ''.join(map(str, li)).rstrip("0")
@@ -80,55 +80,37 @@ def polydiv (dividend, divisor, p):
         return ans
 
 
-# find a random polynomial with deg n
-def rand_deg_poly (n, p):
-    poly = [1]
-    for i in range(n):
-        z = random.randint(0, p-1)
-        poly.insert(0, z)
-    return poly
-
-
-# Generate poly with deg n randomly, and check if it is irreducible
+# Return an irreducible poly with deg n.
+# Poly with deg n generated randomly, then checked if they are irreducible
 def gen_irreducible (n, p):
-    poly = rand_deg_poly (n, p)
-    divisors = []
+    poly = [random.randint(0, p-1) for i in range(n)] + [1]
 
-    # if irreducible, it has no factors with lower deg
     # sufficient to check factors with deg <= n/2
-    for i in range(n/2):
-        poss_ints = [k for k in range(p)]*(i+2)
-        div = list(set(itertools.combinations(poss_ints, i+2)))
-        divisors += div
-
-    # careful! (1, 0) will divide everything
-    divisors = [d for d in divisors if sum(d) > (p-1)]
-    # add back the factor x
-    divisors.append((0, 1))
-
-    # check all the factors
-    score = 0
-    while score != len(divisors):
-        score = 0
-        poly = rand_deg_poly (n, p)
-        for d in divisors:
-            if polydiv(poly, d, p) != None:
+    while 1:
+        for i in range(n/2):
+            poss_ints = [k for k in range(p)]*(i+2)
+            div = list(set(itertools.combinations(poss_ints, i+2)))
+            for d in div:
+                if sum(d) > (p-1) or d == (0, 1):
+                    if polydiv(poly, d, p) != None:
+                        br = 1
+                        break;
+            if br == 1:
                 break;
-            else:
-                score += 1
+        if i == (n/2 - 1):
+            return poly
+        else:
+            poly = [random.randint(0, p-1) for i in range(n)] + [1]
 
-    # around 1/n of polys with deg n are irreducible -> expected n trials
-    return poly
 
-
-# Generate elements of Fq
+# Generate elements of Fq, where q = p^n
 def fieldelts (p, n):
     acc = [i for i in range(p)]*n
     ans = list(set(itertools.combinations(acc, n)))
     return ans
 
 
-# Polynomial multiplication using convolution
+# Calculates p1 * p2 mod p, where p is a prime
 def polymult (p1, p2, p):
     ans = [0] * (len(p1) + len(p2) - 1)
     for i1, c1 in enumerate(p1):
@@ -138,7 +120,7 @@ def polymult (p1, p2, p):
     return ans
 
 
-# Fq/f means that we mod by f. Defined below is modding a poly by f
+# Calculates poly mod f mod p where f is an irreducible poly and p is a prime
 def polymod (poly, f, p):
     deg = len(poly) - len(f)
     while deg >= 0:
@@ -157,8 +139,7 @@ def polymod (poly, f, p):
         deg = len(poly) - len(f)
     return poly
 
-
-# Poly multiplication mod by the irreducible poly f
+# Calculates p1 * p2 mod f mod p
 def polymultmod (p1, p2, f, p):
     poly = polymult(p1, p2, p)
     poly = polymod(poly, f, p)
@@ -167,8 +148,8 @@ def polymultmod (p1, p2, f, p):
     return poly
 
 
-# Do not need to create addition table for Fq, add vector components mod p
 # Creates the multiplication table for Fq
+# NOTE: addition in Fq is merely adding vector components mod p
 def multtable (irr, elts, p):
     L = len(elts)
     table = [[0 for i in range(L)] for j in range(L)]
@@ -227,8 +208,6 @@ def field_prime_power (p, n):
             print lines[(a, b, c)]
 
 
-# Prime factorization of n.
-# For checking if user input is a square of a prime power
 def prime_factor(n):
     ans = []
     i = 2
